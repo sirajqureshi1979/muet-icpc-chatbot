@@ -407,10 +407,10 @@
             `;
 
             try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json',
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
                         cnic: cnic,
@@ -420,17 +420,25 @@
                     })
                 });
 
-                const data = await response.json();
+                const text = await res.text();
+                console.log('Response text:', text);
+                
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    data = { message: text };
+                }
 
-                if (response.ok) {
+                if (res.ok) {
                     showSuccess(data.message || 'Password reset successful! Check your email.');
                 } else {
-                    showFailure(data.message || 'Reset failed. Please contact ICPC Office.');
+                    showFailure(data.message || `Error ${res.status}: ${res.statusText}`);
                 }
 
             } catch (error) {
-                console.error('Error:', error);
-                showFailure('Network error. Please try again or contact ICPC Office.');
+                console.error('Fetch error:', error);
+                showFailure('Network error: ' + error.message + '. Please check if n8n workflow is active and ngrok is running.');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `Reset Password <span class="text-xl">→</span>`;
